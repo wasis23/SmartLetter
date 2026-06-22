@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* Custom styles and print layout settings */
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased selection:bg-indigo-100;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+}
+
+/* Glassmorphism utility classes */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* A4 Print Layout Setup */
+@media print {
+  body {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Remove default browser headers and footers by setting margin to 0 */
+  @page {
+    size: A4;
+    margin: 0 !important;
+  }
+
+  .print-page {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    padding: 0mm 20mm 20mm 20mm !important; /* Top padding is now 0 to pull Kop Surat to the very top */
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+  }
+}

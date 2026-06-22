@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Local env files (containing sensitive database and SMTP passwords)
+.env
+backend/.env
+frontend/.env
+*.env.local
+
+# Frontend production builds
+frontend/dist/
+dist/
+
+# Backend simulated/locally saved email files
+backend/sent_emails/
+
+# OS/IDE system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
