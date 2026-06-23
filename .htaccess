@@ -1,8 +1,14 @@
 RewriteEngine on
 
-# Route API requests to backend Node.js on port 5000 (Apache mod_proxy must be enabled)
+# 1. Proxy API requests ke backend Node.js (port 5000)
+# Pastikan modul proxy Apache sudah aktif (a2enmod proxy proxy_http)
 RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
 
-# Pastikan hanya me-rewrite jika request belum mengarah ke folder public
+# 2. Jika request menargetkan file atau folder yang ada, langsung sajikan
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 3. Rute SPA: Arahkan semua request non-file ke frontend/dist/index.html
 RewriteCond %{REQUEST_URI} !^/frontend/dist/
-RewriteRule ^(.*)$ frontend/dist/$1 [L]
+RewriteRule ^(.*)$ frontend/dist/index.html [L]
