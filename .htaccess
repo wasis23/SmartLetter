@@ -1,5 +1,8 @@
 RewriteEngine on
 
+# Route API requests to backend Node.js on port 5000 (Apache mod_proxy must be enabled)
+RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+
 # Pastikan hanya me-rewrite jika request belum mengarah ke folder public
 RewriteCond %{REQUEST_URI} !^/frontend/dist/
 RewriteRule ^(.*)$ frontend/dist/$1 [L]
