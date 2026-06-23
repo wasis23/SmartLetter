@@ -444,8 +444,11 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
     const studentEmail = row.email_mahasiswa;
     const mailKetua = dynamicData.email_ketua;
     
-    // Build dynamic verification URL
-    const validationUrl = `http://localhost:5173/validasi/${row.id}`;
+    // Build dynamic verification URL using request protocol and host as fallback
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const validationUrl = `${baseUrl}/validasi/${row.id}`;
 
     // Build Email HTML body
     const emailHtml = `
@@ -555,6 +558,20 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
     res.status(500).json({ message: 'Gagal memproses pengiriman email surat.' });
   }
 });
+
+// Serve static files from the React frontend dist folder
+const distPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  
+  // For any route other than API, send index.html
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Initialize database and start server (reloaded for .env updates)
 initializeDatabase().then(() => {

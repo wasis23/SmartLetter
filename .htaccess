@@ -1,0 +1,5 @@
+RewriteEngine on
+
+# Pastikan hanya me-rewrite jika request belum mengarah ke folder public
+RewriteCond %{REQUEST_URI} !^/frontend/dist/
+RewriteRule ^(.*)$ frontend/dist/$1 [L]
