@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
-import { Printer, ArrowLeft, Loader2, QrCode } from 'lucide-react';
+import { Printer, ArrowLeft, Loader2, QrCode, Download } from 'lucide-react';
 
 export default function AdminCetak() {
   const { id } = useParams();
@@ -97,9 +97,9 @@ export default function AdminCetak() {
     );
   }
 
-  // Validation Link pointing to validation page
+  // Local offline QR code URL and validation URL
   const validationUrl = `${window.location.origin}/validasi/${data.id}`;
-  const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(validationUrl)}`;
+  const qrCodeApiUrl = `${API_BASE_URL}/pengajuan/${data.id}/qrcode`;
 
   // Compile template placeholders
   const compileTemplate = (template, item) => {
@@ -189,11 +189,20 @@ export default function AdminCetak() {
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs font-bold text-slate-900">Nomor: {data.nomor_surat}</span>
         </div>
+        <a
+          href={`${API_BASE_URL}/pengajuan/${data.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer no-underline"
+        >
+          <Download className="w-4 h-4" /> Unduh PDF Asli
+        </a>
         <button
           onClick={handlePrint}
           className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
         >
-          <Printer className="w-4 h-4" /> Cetak Surat (PDF)
+          <Printer className="w-4 h-4" /> Cetak (Browser)
         </button>
       </div>
 

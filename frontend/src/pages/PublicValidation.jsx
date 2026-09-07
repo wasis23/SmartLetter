@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
-import { CheckCircle2, AlertTriangle, FileText, Calendar, User, Users, ShieldAlert, ArrowLeft, Loader2, Printer } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, FileText, Calendar, User, Users, ShieldAlert, ArrowLeft, Loader2, Printer, Download } from 'lucide-react';
 
 export default function PublicValidation() {
   const { id } = useParams();
@@ -193,15 +193,25 @@ export default function PublicValidation() {
               </div>
             )}
 
-            {/* Download/Print Button */}
-            <div className="text-center pt-2">
+            {/* Download/Print Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <a
+                href={`${API_BASE_URL}/pengajuan/${data.id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-sm shadow-lg shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] no-underline"
+              >
+                <Download className="w-5 h-5" />
+                <span>Unduh Dokumen PDF Asli</span>
+              </a>
               <Link
                 to={`/cetak/${data.id}`}
                 target="_blank"
-                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-sm shadow-lg shadow-blue-500/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl text-sm shadow-lg shadow-blue-500/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Printer className="w-5 h-5" />
-                <span>Unduh / Cetak Surat Resmi (PDF)</span>
+                <span>Buka Pratinjau Cetak</span>
               </Link>
             </div>
 

@@ -1,34 +1,64 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 const { pool, initializeDatabase } = require('./db');
+const { generateLetterPDF, formatDateIndo } = require('./pdfGenerator');
+const QRCode = require('qrcode');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'smart_letter_jwt_secret_key_2026_xyz';
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Simple Auth Middleware
-// For simplicity and ease of run, we use a simple static token verification.
-// When admin logs in, we give them a token that we check here.
+// JWT Authentication Middleware
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized access. Token is missing.' });
+    return res.status(401).json({ message: 'Akses ditolak. Token otentikasi tidak ditemukan.' });
   }
   const token = authHeader.split(' ')[1];
-  if (token !== 'smart_letter_admin_authenticated_token') {
-    return res.status(403).json({ message: 'Forbidden. Invalid token.' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.admin = decoded;
+    next();
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Sesi Anda telah kedaluwarsa. Silakan login kembali.' });
+    }
+    return res.status(403).json({ message: 'Token tidak valid atau tidak memiliki otorisasi.' });
   }
-  next();
 };
+
+// Helper to dynamically resolve frontend URL for links, QR codes, and PDF verification
+function getFrontendUrl(req) {
+  let frontendUrl = process.env.APP_URL || process.env.CLIENT_BASE_URL;
+  if (!frontendUrl && req) {
+    const origin = req.get('origin');
+    if (origin) {
+      frontendUrl = origin;
+    } else {
+      const referer = req.get('referer');
+      if (referer) {
+        try {
+          const parsedUrl = new URL(referer);
+          frontendUrl = parsedUrl.origin;
+        } catch (e) {
+          // Ignore parse error
+        }
+      }
+    }
+  }
+  return frontendUrl || 'http://localhost:5173';
+}
 
 // ----------------------------------------------------
 // PUBLIC API ENDPOINTS
@@ -71,6 +101,87 @@ app.get('/api/public/pengajuan/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching public validation:', error);
     res.status(500).json({ message: 'Gagal memproses validasi surat.' });
+  }
+});
+
+// Download / Stream Letter as Server-Side Generated PDF
+app.get('/api/pengajuan/:id/pdf', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        p.id,
+        p.status,
+        p.nomor_surat,
+        p.tanggal_surat,
+        p.created_at,
+        m.nim,
+        m.nama as nama_mahasiswa,
+        m.prodi,
+        m.angkatan,
+        m.email,
+        s.nama_surat,
+        s.kode_surat,
+        s.template_text,
+        p.data_dinamis
+      FROM pengajuan_surat p
+      JOIN mahasiswa m ON p.mahasiswa_id = m.id
+      JOIN master_surat s ON p.surat_id = s.id
+      WHERE p.id = ?
+    `, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Surat tidak ditemukan.' });
+    }
+
+    const row = rows[0];
+    if (row.status !== 'disetujui') {
+      return res.status(400).json({ message: 'Hanya surat yang berstatus disetujui yang dapat diunduh dalam format PDF.' });
+    }
+
+    row.data_dinamis = typeof row.data_dinamis === 'string' ? JSON.parse(row.data_dinamis) : row.data_dinamis;
+
+    // Retrieve kop_surat from settings
+    let kopSurat = '';
+    const [kopRows] = await pool.query('SELECT value_text FROM settings WHERE key_name = ?', ['kop_surat']);
+    if (kopRows.length > 0 && kopRows[0].value_text) {
+      kopSurat = kopRows[0].value_text;
+    }
+
+    // Determine client base URL
+    const clientBaseUrl = getFrontendUrl(req);
+    const pdfBuffer = await generateLetterPDF(row, kopSurat, clientBaseUrl);
+
+    const safeFilename = `Surat_${row.kode_surat}_${(row.nomor_surat || 'Resmi').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ message: 'Gagal men-generate dokumen PDF.', error: error.message });
+  }
+});
+
+// Offline Local QR Code generator for letter verification
+app.get('/api/pengajuan/:id/qrcode', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const clientBaseUrl = getFrontendUrl(req);
+    const validationUrl = `${clientBaseUrl}/validasi/${id}`;
+    const qrBuffer = await QRCode.toBuffer(validationUrl, {
+      margin: 1,
+      width: 140,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
+    res.setHeader('Content-Type', 'image/png');
+    res.send(qrBuffer);
+  } catch (error) {
+    console.error('Error generating QRCode:', error);
+    res.status(500).json({ message: 'Gagal membuat QRCode.' });
   }
 });
 
@@ -200,10 +311,16 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid username or password.' });
     }
 
-    // Send token and metadata
+    // Generate signed JWT Token valid for 24 hours
+    const token = jwt.sign(
+      { id: admin.id, username: admin.username },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
     res.json({
       message: 'Login successful',
-      token: 'smart_letter_admin_authenticated_token',
+      token,
       user: {
         id: admin.id,
         username: admin.username
@@ -443,32 +560,8 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
     const dynamicData = typeof row.data_dinamis === 'string' ? JSON.parse(row.data_dinamis) : row.data_dinamis;
     const studentEmail = row.email_mahasiswa;
     const mailKetua = dynamicData.email_ketua;
-    
-    // Build dynamic verification URL:
-    // 1. Use process.env.APP_URL if defined
-    // 2. Otherwise try to use request's Origin header (domain of the frontend)
-    // 3. Otherwise try to use request's Referer header (parse base URL)
-    // 4. Default fallback to 'http://localhost:5173'
-    let frontendUrl = process.env.APP_URL;
-    if (!frontendUrl) {
-      const origin = req.get('origin');
-      if (origin) {
-        frontendUrl = origin;
-      } else {
-        const referer = req.get('referer');
-        if (referer) {
-          try {
-            const parsedUrl = new URL(referer);
-            frontendUrl = parsedUrl.origin;
-          } catch (e) {
-            // Ignore parse error
-          }
-        }
-      }
-    }
-    if (!frontendUrl) {
-      frontendUrl = 'http://localhost:5173';
-    }
+    // Build dynamic verification URL
+    const frontendUrl = getFrontendUrl(req);
     const validationUrl = `${frontendUrl}/validasi/${row.id}`;
 
     // Build Email HTML body
@@ -520,16 +613,32 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
       </div>
     `;
 
-    // 1. Save copy locally to sent_emails for audit and instant simulation
+    // 1. Generate official PDF document for attachment
+    let pdfBuffer = null;
+    try {
+      let kopSurat = '';
+      const [kopRows] = await pool.query('SELECT value_text FROM settings WHERE key_name = ?', ['kop_surat']);
+      if (kopRows.length > 0 && kopRows[0].value_text) {
+        kopSurat = kopRows[0].value_text;
+      }
+      pdfBuffer = await generateLetterPDF(row, kopSurat, frontendUrl);
+    } catch (pdfErr) {
+      console.error('Warning: Failed to generate PDF attachment, continuing with email:', pdfErr);
+    }
+
+    // 2. Save copy locally to sent_emails for audit and instant simulation
     const mailDirectory = path.join(__dirname, 'sent_emails');
     if (!fs.existsSync(mailDirectory)) {
       fs.mkdirSync(mailDirectory);
     }
     const filePath = path.join(mailDirectory, `email_pengajuan_${row.id}.html`);
     fs.writeFileSync(filePath, emailHtml);
+    if (pdfBuffer) {
+      fs.writeFileSync(path.join(mailDirectory, `surat_resmi_${row.id}.pdf`), pdfBuffer);
+    }
     console.log(`[Email Simulated] Saved sent email copy to: ${filePath}`);
 
-    // 2. Transmit via SMTP if configuration variables exist in env
+    // 3. Transmit via SMTP if configuration variables exist in env
     let mailSent = false;
     let mailError = null;
 
@@ -550,12 +659,22 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
           recipients.push(mailKetua);
         }
 
+        const attachments = [];
+        if (pdfBuffer) {
+          attachments.push({
+            filename: `Surat_${row.kode_surat}_${(row.nomor_surat || 'Resmi').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          });
+        }
+
         const info = await transporter.sendMail({
           from: process.env.SMTP_FROM || `"SmartLetter Politeknik Indonusa" <${process.env.SMTP_USER}>`,
           to: recipients.join(','),
           subject: `Surat Resmi ${row.kode_surat} - Politeknik Indonusa Surakarta`,
-          text: `Halo ${row.nama_mahasiswa},\n\nPengajuan surat kegiatan Anda telah disetujui oleh Kepala Program Studi Politeknik Indonusa Surakarta.\n\nBerikut adalah rincian surat resmi Anda:\n- Jenis Surat: ${row.nama_surat} (${row.kode_surat})\n- Nomor Surat: ${row.nomor_surat}\n- Tanggal Terbit: ${new Date(row.tanggal_surat).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}\n- Rencana Kegiatan: ${dynamicData.nama_kegiatan}\n\nAnda dapat mengunduh dan mencetak berkas surat resmi berformat A4 tersebut melalui tautan berikut:\n${validationUrl}\n\nTerima kasih,\nSistem SmartLetter Politeknik Indonusa Surakarta`,
-          html: emailHtml
+          text: `Halo ${row.nama_mahasiswa},\n\nPengajuan surat kegiatan Anda telah disetujui oleh Kepala Program Studi Politeknik Indonusa Surakarta.\n\nBerikut adalah rincian surat resmi Anda:\n- Jenis Surat: ${row.nama_surat} (${row.kode_surat})\n- Nomor Surat: ${row.nomor_surat}\n- Tanggal Terbit: ${new Date(row.tanggal_surat).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}\n- Rencana Kegiatan: ${dynamicData.nama_kegiatan}\n\nBerkas surat resmi PDF telah kami lampirkan pada email ini. Anda juga dapat melihat dan memvalidasi surat tersebut melalui tautan:\n${validationUrl}\n\nTerima kasih,\nSistem SmartLetter Politeknik Indonusa Surakarta`,
+          html: emailHtml,
+          attachments
         });
         
         console.log('Email sent successfully via SMTP:', info.messageId);
@@ -570,6 +689,7 @@ app.post('/api/admin/pengajuan/:id/kirim-email', adminAuth, async (req, res) => 
       message: 'Proses pengiriman email berhasil dilakukan!',
       simulated: !mailSent,
       simulated_path: filePath,
+      pdf_attached: !!pdfBuffer,
       smtp_sent: mailSent,
       smtp_error: mailError
     });
