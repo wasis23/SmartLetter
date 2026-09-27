@@ -1,14 +1,21 @@
-RewriteEngine on
+DirectoryIndex frontend/dist/index.html index.html index.php
 
-# 1. Proxy API requests ke backend Node.js (port 5000)
-# Pastikan modul proxy Apache sudah aktif (a2enmod proxy proxy_http)
-RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
 
-# 2. Jika request menargetkan file atau folder yang ada, langsung sajikan
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+    # 1. Proxy API requests ke backend Node.js (port 5000)
+    RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
 
-# 3. Rute SPA: Arahkan semua request non-file ke frontend/dist/index.html
-RewriteCond %{REQUEST_URI} !^/frontend/dist/
-RewriteRule ^(.*)$ frontend/dist/index.html [L]
+    # 2. Jika file fisik ada langsung di root public_html
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # 3. Jika file statis ada di frontend/dist (seperti assets/, favicon.svg, dll)
+    RewriteCond %{DOCUMENT_ROOT}/frontend/dist/$1 -f
+    RewriteRule ^(.*)$ frontend/dist/$1 [L]
+
+    # 4. Fallback SPA untuk routing React (seperti /admin/login, /admin/dashboard, dll)
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteRule ^.*$ frontend/dist/index.html [L]
+</IfModule>

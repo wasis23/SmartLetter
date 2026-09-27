@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
-import { FileText, LayoutDashboard, History, LogOut, User, Menu, X, FileCheck, FileX, Clock, Settings, FileCode } from 'lucide-react';
+import { FileText, LayoutDashboard, History, LogOut, User, Menu, X, FileCheck, FileX, Clock, Settings, FileCode, FileSpreadsheet, PenTool } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export default function AdminLayout({ children, title }) {
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row">
       
       {/* Mobile Top Bar */}
-      <header className="md:hidden bg-white border-b border-blue-100 flex justify-between items-center px-6 py-4 sticky top-0 z-50 shadow-sm">
+      <header className="md:hidden bg-white border-b border-blue-100 flex justify-between items-center px-6 py-4 sticky top-0 z-50 shadow-sm no-print">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-blue-600" />
           <span className="font-extrabold text-indigo-950 tracking-tight">SmartLetter Admin</span>
@@ -66,7 +66,8 @@ export default function AdminLayout({ children, title }) {
  
       {/* Sidebar Navigation - Deep Indigo to Blue gradient */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-indigo-900 via-blue-800 to-indigo-950 p-6 flex flex-col justify-between transition-transform duration-300 md:relative md:translate-x-0
+        no-print fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-indigo-900 via-blue-800 to-indigo-950 p-6 flex flex-col justify-between transition-transform duration-300
+        md:sticky md:top-0 md:h-screen md:shrink-0 md:overflow-y-auto
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="space-y-8">
@@ -123,6 +124,30 @@ export default function AdminLayout({ children, title }) {
             >
               <FileCode className="w-4 h-4" />
               <span>Template Surat</span>
+            </Link>
+            <Link
+              to="/admin/generate-surat"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                isActive('/admin/generate-surat') 
+                  ? 'bg-white text-indigo-950 shadow-md' 
+                  : 'text-indigo-100 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Generate Surat</span>
+            </Link>
+            <Link
+              to="/admin/tanda-tangan"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                isActive('/admin/tanda-tangan') || isActive('/admin/signatures')
+                  ? 'bg-white text-indigo-950 shadow-md' 
+                  : 'text-indigo-100 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <PenTool className="w-4 h-4" />
+              <span>Kelola Tanda Tangan</span>
             </Link>
             <Link
               to="/admin/settings"
@@ -186,7 +211,7 @@ export default function AdminLayout({ children, title }) {
       <div className="flex-1 flex flex-col min-w-0 bg-blue-50/20">
         
         {/* Top Header */}
-        <header className="hidden md:flex justify-between items-center px-8 py-5 border-b border-blue-100 bg-white sticky top-0 z-30 shadow-sm">
+        <header className="hidden md:flex justify-between items-center px-8 py-5 border-b border-blue-100 bg-white sticky top-0 z-30 shadow-sm no-print">
           <h2 className="text-xl font-black text-indigo-950 m-0 leading-none">{title}</h2>
           <div className="text-xs text-slate-600 font-bold">
             Sistem Pembuatan Surat Otomatis • {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

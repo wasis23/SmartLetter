@@ -8,6 +8,8 @@ import AdminDetail from './pages/AdminDetail';
 import AdminCetak from './pages/AdminCetak';
 import AdminSettings from './pages/AdminSettings';
 import AdminTemplates from './pages/AdminTemplates';
+import AdminGenerateSurat from './pages/AdminGenerateSurat';
+import AdminSignatures from './pages/AdminSignatures';
 import PublicValidation from './pages/PublicValidation';
 
 function App() {
@@ -31,6 +33,9 @@ function App() {
         <Route path="/admin/pengajuan/:id" element={<AdminDetail />} />
         <Route path="/admin/cetak/:id" element={<AdminCetak />} />
         <Route path="/admin/templates" element={<AdminTemplates />} />
+        <Route path="/admin/generate-surat" element={<AdminGenerateSurat />} />
+        <Route path="/admin/tanda-tangan" element={<AdminSignatures />} />
+        <Route path="/admin/signatures" element={<AdminSignatures />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Fallback route */}

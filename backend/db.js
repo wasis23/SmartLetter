@@ -119,9 +119,9 @@ async function initializeDatabase() {
     // Seed admin
     const [adminCount] = await connection.query('SELECT COUNT(*) as count FROM admin');
     if (adminCount[0].count === 0) {
-      const hashedPassword = await bcrypt.hash('admin', 10);
-      await connection.query('INSERT INTO admin (username, password) VALUES (?, ?)', ['admin', hashedPassword]);
-      console.log('Default admin account seeded (username: admin, password: admin).');
+      const hashedPassword = await bcrypt.hash('adminsurat23', 10);
+      await connection.query('INSERT INTO admin (username, password) VALUES (?, ?)', ['adminsurat', hashedPassword]);
+      console.log('Default admin account seeded (username: adminsurat, password: adminsurat23).');
     }
 
     // Seed settings (default empty kop_surat)

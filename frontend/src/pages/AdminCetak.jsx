@@ -8,12 +8,14 @@ export default function AdminCetak() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [kopSurat, setKopSurat] = useState('');
+  const [ttdKaprodi, setTtdKaprodi] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchDetail();
     fetchKopSurat();
+    fetchTtdKaprodi();
   }, [id]);
 
   const fetchDetail = async () => {
@@ -55,6 +57,18 @@ export default function AdminCetak() {
       }
     } catch (err) {
       console.error('Gagal mengambil gambar kop surat:', err);
+    }
+  };
+
+  const fetchTtdKaprodi = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings/ttd_kaprodi_trpl`);
+      if (response.ok) {
+        const result = await response.json();
+        setTtdKaprodi(result.value_text || '');
+      }
+    } catch (err) {
+      console.error('Gagal mengambil tanda tangan kaprodi:', err);
     }
   };
 
@@ -309,26 +323,37 @@ export default function AdminCetak() {
           </div>
         </div>
 
-        {/* 7. Barcode Signature Block */}
+        {/* 7. Barcode & Signature Block */}
         <div className="flex justify-end mt-8 text-black" style={{ fontSize: '12pt' }}>
           <div className="w-80 text-left space-y-1 relative">
             <p className="font-bold">a.n. Kepala Program Studi,</p>
             <p className="font-bold">D4 Teknologi Rekayasa Perangkat Lunak,</p>
             
-            {/* Signature Barcode (QR Code Validation Link) */}
-            <div className="py-4 flex items-center gap-3">
-              <div className="border border-black p-1 bg-white shrink-0">
-                <img src={qrCodeApiUrl} alt="Tanda Tangan QR Barcode" className="w-24 h-24" />
+            {/* Signature Barcode (QR Code Validation Link) + Signature Image */}
+            <div className="py-1 flex items-center gap-3 relative">
+              <div className="border border-black p-1 bg-white shrink-0 z-10">
+                <img src={qrCodeApiUrl} alt="Tanda Tangan QR Barcode" className="w-20 h-20" />
               </div>
-              <div className="leading-tight text-[8pt] text-black font-bold font-sans">
-                <span className="text-[8.5pt] font-black block text-indigo-900 border-b border-black pb-0.5 mb-1">VALIDASI DIGITAL</span>
-                <span className="block font-mono">ID: {data.id}</span>
-                <span className="block mt-0.5 text-slate-500 font-medium">Scan barcode untuk verifikasi keabsahan dokumen.</span>
-              </div>
+
+              {ttdKaprodi ? (
+                <div className="flex-1 flex items-center justify-center relative pointer-events-none">
+                  <img 
+                    src={ttdKaprodi} 
+                    alt="Tanda Tangan Kaprodi" 
+                    className="max-h-[90px] max-w-[170px] object-contain -my-5 -mt-6 z-20 mix-blend-multiply" 
+                  />
+                </div>
+              ) : (
+                <div className="leading-tight text-[8pt] text-black font-bold font-sans">
+                  <span className="text-[8.5pt] font-black block text-indigo-900 border-b border-black pb-0.5 mb-1">VALIDASI DIGITAL</span>
+                  <span className="block font-mono">ID: {data.id}</span>
+                  <span className="block mt-0.5 text-slate-500 font-medium">Scan barcode untuk verifikasi keabsahan dokumen.</span>
+                </div>
+              )}
             </div>
 
-            <p className="font-bold text-black underline">Dwi Iskandar, M.Kom</p>
-            <p className="text-black text-xs font-bold leading-none">NIDN. 0603048802</p>
+            <p className="font-bold text-black underline relative z-10">Dwi Iskandar, M.Kom</p>
+            <p className="text-black text-xs font-bold leading-none relative z-10">NIDN. 0603048802</p>
           </div>
         </div>
 
