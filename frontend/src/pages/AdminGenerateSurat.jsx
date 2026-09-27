@@ -67,6 +67,14 @@ const LETTER_TYPES = [
     icon: ClipboardList,
     badge: 'Form Monev',
     color: 'blue'
+  },
+  {
+    id: 'SURAT_TUGAS',
+    title: 'Surat Tugas (UPPM / Dosen / Mahasiswa)',
+    subtitle: 'Surat penugasan penelitian & pengabdian masyarakat (Dosen & Mahasiswa)',
+    icon: FileCheck,
+    badge: 'Surat Tugas',
+    color: 'teal'
   }
 ];
 
@@ -122,7 +130,9 @@ export default function AdminGenerateSurat() {
       'ttd_integrasi_ketua_upm',
       'ttd_integrasi_ketua_lppm',
       'ttd_penilai_proposal',
-      'ttd_pemonev_penelitian'
+      'ttd_pemonev_penelitian',
+      'ttd_surtug_ketua_uppm',
+      'ttd_surtug_mitra'
     ];
     const loaded = {};
     await Promise.all(
@@ -225,6 +235,10 @@ export default function AdminGenerateSurat() {
       const nama = item.ketua_peneliti || item.nama || '';
       const ta = (item.tahun_akademik || '').replace(/\s*\/\s*/g, '-');
       return `Form Monev ${nama} ${ta}`.replace(/\s+/g, ' ').trim();
+    } else if (selectedType === 'SURAT_TUGAS') {
+      const nama = item.pelaksanaList?.[0]?.nama || item.nama || 'Surat_Tugas';
+      const noSurtug = (item.nomor_surat || '').replace(/[\/\\]/g, '-');
+      return `Surat Tugas ${noSurtug} ${nama}`.replace(/\s+/g, ' ').trim();
     } else {
       const ta = (item.tahun_akademik || '').replace(/\s*\/\s*/g, '-');
       const prodi = item.prodi || '';
@@ -316,6 +330,106 @@ export default function AdminGenerateSurat() {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Data_SKM');
       XLSX.writeFile(workbook, 'Template_SKM_Surat_Kesanggupan_Mengajar.xlsx');
+    } else if (selectedType === 'SURAT_TUGAS') {
+      // Template for Surat Tugas UPPM (Dosen / Mahasiswa)
+      const sampleData = [
+        {
+          No_Surat: '1235/DII/INDO/VII/2026',
+          Nama_Pemberi_Tugas: 'Dr. Ratna Susanti, S.S.,M.Pd.',
+          Jabatan_Pemberi_Tugas: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+          Institusi_Pemberi_Tugas: 'Politeknik Indonusa Surakarta',
+          Nama_Pelaksana: 'Muhammad Nurfauzi Sahono, M.Kom',
+          Program_Studi: 'D4 TRPL',
+          NUPTK_NIK_NIM: '7235775676130193',
+          Keperluan: 'Kegiatan pengabdian masyarakat dengan judul "PEMBERDAYAAN EDUWISATA DAN AGROWISATA PERTANIAN SERTA OLAHAN PANGAN BERBASIS WEBSITE UNTUK KELOMPOK WANITA TANI DI KEDATON, PLERET, BANTUL"',
+          Mitra: 'Kelompok Wanita Tani (KWT) Puspa Gemari Kedaton',
+          Waktu_Pelaksanaan: 'Sabtu, 4 Juli 2026',
+          Tempat_Tanggal_Surat: 'Surakarta, 02 Juli 2026',
+          Nama_Ketua_UPPM: 'Dr. Ratna Susanti, S.S., M.Pd.',
+          NIDN_Ketua_UPPM: 'NIDN 0617067301'
+        },
+        {
+          No_Surat: '1235/DII/INDO/VII/2026',
+          Nama_Pemberi_Tugas: 'Dr. Ratna Susanti, S.S.,M.Pd.',
+          Jabatan_Pemberi_Tugas: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+          Institusi_Pemberi_Tugas: 'Politeknik Indonusa Surakarta',
+          Nama_Pelaksana: 'Baskoro Adi Wicaksono, S.T., M.Eng',
+          Program_Studi: 'D4 TRPL',
+          NUPTK_NIK_NIM: '231125179',
+          Keperluan: 'Kegiatan pengabdian masyarakat dengan judul "PEMBERDAYAAN EDUWISATA DAN AGROWISATA PERTANIAN SERTA OLAHAN PANGAN BERBASIS WEBSITE UNTUK KELOMPOK WANITA TANI DI KEDATON, PLERET, BANTUL"',
+          Mitra: 'Kelompok Wanita Tani (KWT) Puspa Gemari Kedaton',
+          Waktu_Pelaksanaan: 'Sabtu, 4 Juli 2026',
+          Tempat_Tanggal_Surat: 'Surakarta, 02 Juli 2026',
+          Nama_Ketua_UPPM: 'Dr. Ratna Susanti, S.S., M.Pd.',
+          NIDN_Ketua_UPPM: 'NIDN 0617067301'
+        },
+        {
+          No_Surat: '1235/DII/INDO/VII/2026',
+          Nama_Pemberi_Tugas: 'Dr. Ratna Susanti, S.S.,M.Pd.',
+          Jabatan_Pemberi_Tugas: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+          Institusi_Pemberi_Tugas: 'Politeknik Indonusa Surakarta',
+          Nama_Pelaksana: 'Muhammad Kais, S.E.,M.Ak',
+          Program_Studi: 'D4 AP',
+          NUPTK_NIK_NIM: '2837766667137092',
+          Keperluan: 'Kegiatan pengabdian masyarakat dengan judul "PEMBERDAYAAN EDUWISATA DAN AGROWISATA PERTANIAN SERTA OLAHAN PANGAN BERBASIS WEBSITE UNTUK KELOMPOK WANITA TANI DI KEDATON, PLERET, BANTUL"',
+          Mitra: 'Kelompok Wanita Tani (KWT) Puspa Gemari Kedaton',
+          Waktu_Pelaksanaan: 'Sabtu, 4 Juli 2026',
+          Tempat_Tanggal_Surat: 'Surakarta, 02 Juli 2026',
+          Nama_Ketua_UPPM: 'Dr. Ratna Susanti, S.S., M.Pd.',
+          NIDN_Ketua_UPPM: 'NIDN 0617067301'
+        },
+        {
+          No_Surat: '1235/DII/INDO/VII/2026',
+          Nama_Pemberi_Tugas: 'Dr. Ratna Susanti, S.S.,M.Pd.',
+          Jabatan_Pemberi_Tugas: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+          Institusi_Pemberi_Tugas: 'Politeknik Indonusa Surakarta',
+          Nama_Pelaksana: 'Rahardian Hutama Syamsur',
+          Program_Studi: 'D4 TRPL',
+          NUPTK_NIK_NIM: 'B24052',
+          Keperluan: 'Kegiatan pengabdian masyarakat dengan judul "PEMBERDAYAAN EDUWISATA DAN AGROWISATA PERTANIAN SERTA OLAHAN PANGAN BERBASIS WEBSITE UNTUK KELOMPOK WANITA TANI DI KEDATON, PLERET, BANTUL"',
+          Mitra: 'Kelompok Wanita Tani (KWT) Puspa Gemari Kedaton',
+          Waktu_Pelaksanaan: 'Sabtu, 4 Juli 2026',
+          Tempat_Tanggal_Surat: 'Surakarta, 02 Juli 2026',
+          Nama_Ketua_UPPM: 'Dr. Ratna Susanti, S.S., M.Pd.',
+          NIDN_Ketua_UPPM: 'NIDN 0617067301'
+        },
+        {
+          No_Surat: '1235/DII/INDO/VII/2026',
+          Nama_Pemberi_Tugas: 'Dr. Ratna Susanti, S.S.,M.Pd.',
+          Jabatan_Pemberi_Tugas: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+          Institusi_Pemberi_Tugas: 'Politeknik Indonusa Surakarta',
+          Nama_Pelaksana: 'Zulkifli Ramadhani',
+          Program_Studi: 'D4 TRPL',
+          NUPTK_NIK_NIM: 'B22043',
+          Keperluan: 'Kegiatan pengabdian masyarakat dengan judul "PEMBERDAYAAN EDUWISATA DAN AGROWISATA PERTANIAN SERTA OLAHAN PANGAN BERBASIS WEBSITE UNTUK KELOMPOK WANITA TANI DI KEDATON, PLERET, BANTUL"',
+          Mitra: 'Kelompok Wanita Tani (KWT) Puspa Gemari Kedaton',
+          Waktu_Pelaksanaan: 'Sabtu, 4 Juli 2026',
+          Tempat_Tanggal_Surat: 'Surakarta, 02 Juli 2026',
+          Nama_Ketua_UPPM: 'Dr. Ratna Susanti, S.S., M.Pd.',
+          NIDN_Ketua_UPPM: 'NIDN 0617067301'
+        }
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
+      worksheet['!cols'] = [
+        { wch: 25 }, // No_Surat
+        { wch: 30 }, // Nama_Pemberi_Tugas
+        { wch: 45 }, // Jabatan_Pemberi_Tugas
+        { wch: 30 }, // Institusi_Pemberi_Tugas
+        { wch: 32 }, // Nama_Pelaksana
+        { wch: 15 }, // Program_Studi
+        { wch: 22 }, // NUPTK_NIK_NIM
+        { wch: 60 }, // Keperluan
+        { wch: 45 }, // Mitra
+        { wch: 25 }, // Waktu_Pelaksanaan
+        { wch: 25 }, // Tempat_Tanggal_Surat
+        { wch: 30 }, // Nama_Ketua_UPPM
+        { wch: 20 }  // NIDN_Ketua_UPPM
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data_Surat_Tugas');
+      XLSX.writeFile(workbook, 'Template_Surat_Tugas_UPPM.xlsx');
     } else if (selectedType === 'FORM_PENILAIAN_PROPOSAL') {
       // Template for Form Penilaian Proposal (Hanya 3 inputan: Nama Ketua Pengusul, Judul Proposal, Tempat dan Tanggal)
       const sampleData = [
@@ -976,6 +1090,150 @@ export default function AdminGenerateSurat() {
 
           setParsedItems(parsedList);
           setSuccessMessage(`Berhasil memproses ${parsedList.length} data formulir monitoring dan evaluasi (Monev).`);
+        } else if (selectedType === 'SURAT_TUGAS') {
+          // Parse Surat Tugas UPPM (Bisa 1 person atau multi-pelaksana per nomor surat / keperluan)
+          const surtugMap = new Map();
+
+          rows.forEach((row, index) => {
+            const normalized = {};
+            Object.keys(row).forEach((key) => {
+              const cleanKey = key.toLowerCase().replace(/[\s_\-\.\/]/g, '');
+              normalized[cleanKey] = row[key];
+            });
+
+            const no_surat = (
+              normalized['nosurat'] || 
+              normalized['nomorsurat'] || 
+              normalized['no'] || 
+              '1235/DII/INDO/VII/2026'
+            ).toString().trim();
+
+            const nama_pemberi_tugas = (
+              normalized['namapemberitugas'] || 
+              normalized['pemberitugas'] || 
+              'Dr. Ratna Susanti, S.S.,M.Pd.'
+            ).toString().trim();
+
+            const jabatan_pemberi_tugas = (
+              normalized['jabatanpemberitugas'] || 
+              normalized['jabatan'] || 
+              'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)'
+            ).toString().trim();
+
+            const institusi_pemberi_tugas = (
+              normalized['institusipemberitugas'] || 
+              normalized['institusi'] || 
+              'Politeknik Indonusa Surakarta'
+            ).toString().trim();
+
+            const nama_pelaksana = (
+              normalized['namapelaksana'] || 
+              normalized['nama'] || 
+              normalized['namadosen'] || 
+              normalized['namamahasiswa'] || 
+              ''
+            ).toString().trim();
+
+            const prodi = (
+              normalized['programstudi'] || 
+              normalized['prodi'] || 
+              normalized['jurusan'] || 
+              'D4 TRPL'
+            ).toString().trim();
+
+            const nuptk_nik_nim = (
+              normalized['nuptkniknim'] || 
+              normalized['nuptk'] || 
+              normalized['nik'] || 
+              normalized['nim'] || 
+              normalized['nidn'] || 
+              '-'
+            ).toString().trim();
+
+            const keperluan = (
+              normalized['keperluan'] || 
+              normalized['judul'] || 
+              normalized['judulpengabdian'] || 
+              normalized['kegiatan'] || 
+              '-'
+            ).toString().trim();
+
+            const mitra = (
+              normalized['mitra'] || 
+              normalized['namamitra'] || 
+              normalized['instansi'] || 
+              '-'
+            ).toString().trim();
+
+            const waktu_pelaksanaan = (
+              normalized['waktupelaksanaan'] || 
+              normalized['waktu'] || 
+              normalized['tanggal'] || 
+              '-'
+            ).toString().trim();
+
+            const tempat_tanggal_surat = (
+              normalized['tempattanggalsurat'] || 
+              normalized['tempattanggal'] || 
+              normalized['kotatanggal'] || 
+              'Surakarta, 02 Juli 2026'
+            ).toString().trim();
+
+            const nama_ketua_uppm = (
+              normalized['namaketuauppm'] || 
+              normalized['ketuauppm'] || 
+              'Dr. Ratna Susanti, S.S., M.Pd.'
+            ).toString().trim();
+
+            const nidn_ketua_uppm = (
+              normalized['nidnketuauppm'] || 
+              normalized['nidn'] || 
+              'NIDN 0617067301'
+            ).toString().trim();
+
+            if (!nama_pelaksana && !keperluan) return;
+
+            // Group by no_surat + keperluan (sehingga pelaksana dalam 1 surat otomatis jadi 1 tabel)
+            const groupKey = `${no_surat}_${keperluan.slice(0, 40)}`.replace(/\s+/g, '_');
+
+            if (!surtugMap.has(groupKey)) {
+              surtugMap.set(groupKey, {
+                key: `surtug_${groupKey}`,
+                nomor_surat: no_surat,
+                nama_pemberi_tugas,
+                jabatan_pemberi_tugas,
+                institusi_pemberi_tugas,
+                keperluan,
+                mitra,
+                waktu_pelaksanaan,
+                tempat_tanggal_surat,
+                nama_ketua_uppm,
+                nidn_ketua_uppm,
+                pelaksanaList: []
+              });
+            }
+
+            const surtug = surtugMap.get(groupKey);
+
+            if (nama_pelaksana) {
+              surtug.pelaksanaList.push({
+                no: surtug.pelaksanaList.length + 1,
+                nama: nama_pelaksana,
+                prodi: prodi,
+                nuptk_nik_nim: nuptk_nik_nim
+              });
+            }
+          });
+
+          const groupedSurtugArray = Array.from(surtugMap.values());
+
+          if (groupedSurtugArray.length === 0) {
+            setUploadError('Tidak dapat menemukan data Surat Tugas yang valid di file Excel.');
+            return;
+          }
+
+          setParsedItems(groupedSurtugArray);
+          setSuccessMessage(`Berhasil memproses ${groupedSurtugArray.length} dokumen Surat Tugas (${rows.length} total personil pelaksana).`);
         } else {
           // Parse Form Integrasi Matakuliah (PPM)
           const parsedList = [];
@@ -1250,7 +1508,9 @@ export default function AdminGenerateSurat() {
           ? 'Form_Penilaian_Proposal_Terpisah' 
           : selectedType === 'FORM_MONEV'
             ? 'Form_Monev_Terpisah'
-            : `Form_Integrasi_${integrasiCategory}_Terpisah`;
+            : selectedType === 'SURAT_TUGAS'
+              ? 'Surat_Tugas_Terpisah'
+              : `Form_Integrasi_${integrasiCategory}_Terpisah`;
       const zipDatePart = ta || new Date().toISOString().slice(0, 10);
       link.download = `${prefix}_${zipDatePart}.zip`.replace(/\s+/g, '_');
       document.body.appendChild(link);
@@ -1441,7 +1701,9 @@ export default function AdminGenerateSurat() {
                       ? 'Aturan Format Excel Form Penilaian Proposal:'
                       : selectedType === 'FORM_MONEV'
                         ? 'Aturan Format Excel Form Monev:'
-                        : 'Aturan Format Excel Form Integrasi:'}
+                        : selectedType === 'SURAT_TUGAS'
+                          ? 'Aturan Format Excel Surat Tugas:'
+                          : 'Aturan Format Excel Form Integrasi:'}
                 </span>
                 {selectedType === 'SKM' ? (
                   <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600">
@@ -1460,6 +1722,12 @@ export default function AdminGenerateSurat() {
                     <li>Formulir Monitoring dan Evaluasi (Monev) Kegiatan Penelitian Hibah Internal.</li>
                     <li>Kolom utama: <strong>Ketua_Peneliti</strong>, <strong>Program_Studi</strong>, <strong>Judul_Penelitian</strong>, <strong>Biaya</strong>, <strong>Publikasi (Judul, Jurnal, Link)</strong>, dan <strong>Integrasi Mata Kuliah</strong>.</li>
                     <li>Kolom <strong>Penilaian_Umum</strong> terisi otomatis narasi standar profesional bila dikosongkan di Excel.</li>
+                  </ul>
+                ) : selectedType === 'SURAT_TUGAS' ? (
+                  <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600">
+                    <li>Format resmi Surat Tugas UPPM (Pengabdian / Penelitian / Tugas Khusus).</li>
+                    <li>Jika 1 surat tugas berisi beberapa orang (dosen/mahasiswa), samakan kolom <strong>No_Surat</strong> atau <strong>Keperluan</strong> (otomatis digabung ke 1 tabel pelaksana).</li>
+                    <li>Dilengkapi tanda tangan Mengetahui Pihak Mitra & Ketua UPPM (terintegrasi dengan Tanda Tangan Digital).</li>
                   </ul>
                 ) : (
                   <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600">
@@ -1483,7 +1751,9 @@ export default function AdminGenerateSurat() {
                   ? 'Unduh Template Penilaian Proposal (.xlsx)'
                   : selectedType === 'FORM_MONEV'
                     ? 'Unduh Template Form Monev (.xlsx)'
-                    : 'Unduh Template Excel Form Integrasi (.xlsx)'}
+                    : selectedType === 'SURAT_TUGAS'
+                      ? 'Unduh Template Excel Surat Tugas (.xlsx)'
+                      : 'Unduh Template Excel Form Integrasi (.xlsx)'}
             </button>
           </div>
 
@@ -1647,6 +1917,16 @@ export default function AdminGenerateSurat() {
                       <th className="py-3 px-4">Pemonev</th>
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
+                  ) : selectedType === 'SURAT_TUGAS' ? (
+                    <tr>
+                      <th className="py-3 px-4">No</th>
+                      <th className="py-3 px-4">Nomor Surat Tugas</th>
+                      <th className="py-3 px-4">Pelaksana Tugas</th>
+                      <th className="py-3 px-4">Keperluan / Judul Kegiatan</th>
+                      <th className="py-3 px-4">Mitra & Waktu</th>
+                      <th className="py-3 px-4">Ketua UPPM</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
                   ) : (
                     <tr>
                       <th className="py-3 px-4">No</th>
@@ -1754,6 +2034,34 @@ export default function AdminGenerateSurat() {
                             </td>
                             <td className="py-3.5 px-4 font-medium text-slate-600 text-[11px] whitespace-nowrap">
                               {item.pemonev || 'Dr, Ratna Susanti, S.S., M.Pd'}
+                            </td>
+                          </>
+                        ) : selectedType === 'SURAT_TUGAS' ? (
+                          <>
+                            <td className="py-3.5 px-4 font-mono font-bold text-teal-900">
+                              {item.nomor_surat}
+                            </td>
+                            <td className="py-3.5 px-4 max-w-xs">
+                              <div className="space-y-1">
+                                {item.pelaksanaList?.map((p, pIdx) => (
+                                  <div key={pIdx} className="text-[11px] text-slate-900 font-medium truncate flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+                                    <span><strong>{p.nama}</strong> ({p.prodi} - {p.nuptk_nik_nim})</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 max-w-xs">
+                              <div className="text-[11px] text-slate-800 font-medium line-clamp-2" title={item.keperluan}>
+                                {item.keperluan || '-'}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-slate-800 block text-[11px]">{item.mitra || '-'}</span>
+                              <span className="text-[10px] text-slate-500 block">{item.waktu_pelaksanaan || '-'}</span>
+                            </td>
+                            <td className="py-3.5 px-4 font-medium text-slate-600 text-[11px] whitespace-nowrap">
+                              {item.nama_ketua_uppm || 'Dr. Ratna Susanti, S.S., M.Pd.'}
                             </td>
                           </>
                         ) : (
@@ -1872,6 +2180,8 @@ export default function AdminGenerateSurat() {
                     <SKMDocumentContent lecturer={activePreviewItem} kopSurat={getKopSuratForTA(activePreviewItem.tahun_akademik)} signatures={signatures} />
                   ) : selectedType === 'FORM_PENILAIAN_PROPOSAL' ? (
                     <FormPenilaianProposalDocumentContent data={activePreviewItem} signatures={signatures} />
+                  ) : selectedType === 'SURAT_TUGAS' ? (
+                    <SuratTugasDocumentContent data={activePreviewItem} kopSurat={getKopSuratForTA(2026)} signatures={signatures} />
                   ) : (
                     <FormIntegrasiDocumentContent data={activePreviewItem} kopSurat={getKopSuratForTA(activePreviewItem.tahun_akademik)} integrasiCategory={integrasiCategory} signatures={signatures} />
                   )}
@@ -1919,6 +2229,8 @@ export default function AdminGenerateSurat() {
                 <SKMDocumentContent lecturer={singlePrintItem} kopSurat={getKopSuratForTA(singlePrintItem.tahun_akademik)} signatures={signatures} />
               ) : selectedType === 'FORM_PENILAIAN_PROPOSAL' ? (
                 <FormPenilaianProposalDocumentContent data={singlePrintItem} signatures={signatures} />
+              ) : selectedType === 'SURAT_TUGAS' ? (
+                <SuratTugasDocumentContent data={singlePrintItem} kopSurat={getKopSuratForTA(2026)} signatures={signatures} />
               ) : (
                 <FormIntegrasiDocumentContent data={singlePrintItem} kopSurat={getKopSuratForTA(singlePrintItem.tahun_akademik)} integrasiCategory={integrasiCategory} signatures={signatures} />
               )}
@@ -1941,6 +2253,8 @@ export default function AdminGenerateSurat() {
                   <SKMDocumentContent lecturer={item} kopSurat={getKopSuratForTA(item.tahun_akademik)} signatures={signatures} />
                 ) : selectedType === 'FORM_PENILAIAN_PROPOSAL' ? (
                   <FormPenilaianProposalDocumentContent data={item} signatures={signatures} />
+                ) : selectedType === 'SURAT_TUGAS' ? (
+                  <SuratTugasDocumentContent data={item} kopSurat={getKopSuratForTA(2026)} signatures={signatures} />
                 ) : (
                   <FormIntegrasiDocumentContent data={item} kopSurat={getKopSuratForTA(item.tahun_akademik)} integrasiCategory={integrasiCategory} signatures={signatures} />
                 )}
@@ -1998,7 +2312,7 @@ export default function AdminGenerateSurat() {
             top: 0, 
             left: 0, 
             width: '210mm', 
-            zIndex: 40,
+            zIndex: 40, 
             backgroundColor: '#ffffff'
           }}
         >
@@ -2047,6 +2361,8 @@ export default function AdminGenerateSurat() {
                 <SKMDocumentContent lecturer={zipCurrentItem} kopSurat={getKopSuratForTA(zipCurrentItem.tahun_akademik)} signatures={signatures} />
               ) : selectedType === 'FORM_PENILAIAN_PROPOSAL' ? (
                 <FormPenilaianProposalDocumentContent data={zipCurrentItem} signatures={signatures} />
+              ) : selectedType === 'SURAT_TUGAS' ? (
+                <SuratTugasDocumentContent data={zipCurrentItem} kopSurat={getKopSuratForTA(2026)} signatures={signatures} />
               ) : (
                 <FormIntegrasiDocumentContent data={zipCurrentItem} kopSurat={getKopSuratForTA(zipCurrentItem.tahun_akademik)} integrasiCategory={integrasiCategory} signatures={signatures} />
               )}
@@ -3070,4 +3386,215 @@ function FormMonevDocumentContent({ data, page, signatures = {} }) {
     </div>
   );
 }
+
+// -----------------------------------------------------------------------------------
+// Component: Surat Tugas UPPM (Politeknik Indonusa Surakarta)
+// Meniru persis layout dokumen Surtug_Pak_Fauzi_TRPL.pdf
+// -----------------------------------------------------------------------------------
+function SuratTugasDocumentContent({ data, kopSurat, signatures = {} }) {
+  if (!data) return null;
+
+  const ttdKetuaUppm = signatures['ttd_surtug_ketua_uppm'] || signatures['ttd_integrasi_ketua_lppm'] || '';
+  const ttdMitra = signatures['ttd_surtug_mitra'] || '';
+
+  const pelaksanaList = data.pelaksanaList && data.pelaksanaList.length > 0 
+    ? data.pelaksanaList 
+    : [
+        {
+          no: 1,
+          nama: data.nama_pelaksana || data.nama || 'Muhammad Nurfauzi Sahono, M.Kom',
+          prodi: data.prodi || 'D4 TRPL',
+          nuptk_nik_nim: data.nuptk_nik_nim || '7235775676130193'
+        }
+      ];
+
+  return (
+    <div 
+      className="w-full text-black flex flex-col justify-between bg-white h-full" 
+      style={{ 
+        fontFamily: '"Times New Roman", Times, serif', 
+        fontSize: '11pt', 
+        lineHeight: '1.35',
+        color: '#000000'
+      }}
+    >
+      <div>
+        {/* 1. Kop Surat Header */}
+        <div className="w-full mb-4">
+          <img 
+            src={kopSurat || '/kop.png'} 
+            alt="Kop Surat Resmi" 
+            className="w-full h-auto block" 
+          />
+        </div>
+
+        {/* 2. Judul & Nomor Surat */}
+        <div className="text-center mb-4">
+          <h2 className="text-[13pt] font-bold tracking-wider uppercase inline-block">
+            SURAT TUGAS
+          </h2>
+          <p className="text-[11pt] font-normal mt-0.5">
+            No.&nbsp;&nbsp;{data.nomor_surat || '1235/DII/INDO/VII/2026'}
+          </p>
+        </div>
+
+        {/* 3. Pemberi Tugas */}
+        <div className="text-[11pt] space-y-1 mb-3">
+          <p className="mb-1">Yang bertanda tangan di bawah ini, saya:</p>
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr>
+                <td style={{ width: '100px' }} className="py-0.5">Nama</td>
+                <td style={{ width: '15px' }} className="py-0.5">:</td>
+                <td className="py-0.5 font-normal">{data.nama_pemberi_tugas || 'Dr. Ratna Susanti, S.S.,M.Pd.'}</td>
+              </tr>
+              <tr>
+                <td className="py-0.5">Jabatan</td>
+                <td className="py-0.5">:</td>
+                <td className="py-0.5">{data.jabatan_pemberi_tugas || 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)'}</td>
+              </tr>
+              <tr>
+                <td className="py-0.5">Institusi</td>
+                <td className="py-0.5">:</td>
+                <td className="py-0.5">{data.institusi_pemberi_tugas || 'Politeknik Indonusa Surakarta'}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="mt-2 mb-2">
+            memberikan penugasan kepada dosen dan mahasiswa berikut ini.
+          </p>
+        </div>
+
+        {/* 4. Tabel Pelaksana Tugas */}
+        <table className="w-full border-collapse text-[10pt] mb-4" style={{ border: '1px solid black' }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              <th style={{ border: '1px solid black', padding: '4px 6px', width: '35px', textAlign: 'center' }}>No</th>
+              <th style={{ border: '1px solid black', padding: '4px 8px', textAlign: 'center' }}>Nama</th>
+              <th style={{ border: '1px solid black', padding: '4px 8px', width: '130px', textAlign: 'center' }}>Program Studi</th>
+              <th style={{ border: '1px solid black', padding: '4px 8px', width: '170px', textAlign: 'center' }}>NUPTK/NIK</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pelaksanaList.map((p, pIdx) => (
+              <tr key={pIdx}>
+                <td style={{ border: '1px solid black', padding: '4px 6px', textAlign: 'center' }}>{pIdx + 1}</td>
+                <td style={{ border: '1px solid black', padding: '4px 8px', fontWeight: 'normal' }}>{p.nama}</td>
+                <td style={{ border: '1px solid black', padding: '4px 8px', textAlign: 'center' }}>{p.prodi}</td>
+                <td style={{ border: '1px solid black', padding: '4px 8px', textAlign: 'center' }}>{p.nuptk_nik_nim || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* 5. Detail Penugasan (Keperluan, Mitra, Waktu) */}
+        <div className="text-[11pt] space-y-1 mb-4">
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr>
+                <td style={{ width: '100px', verticalAlign: 'top' }} className="py-1">Keperluan</td>
+                <td style={{ width: '15px', verticalAlign: 'top' }} className="py-1">:</td>
+                <td className="py-1 text-justify" style={{ verticalAlign: 'top' }}>
+                  {data.keperluan || 'Kegiatan pengabdian masyarakat'}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ verticalAlign: 'top' }} className="py-1">Mitra</td>
+                <td style={{ verticalAlign: 'top' }} className="py-1">:</td>
+                <td className="py-1 text-justify" style={{ verticalAlign: 'top' }}>
+                  {data.mitra || '-'}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ verticalAlign: 'top' }} className="py-1">Waktu</td>
+                <td style={{ verticalAlign: 'top' }} className="py-1">:</td>
+                <td className="py-1" style={{ verticalAlign: 'top' }}>
+                  {data.waktu_pelaksanaan || '-'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 6. Penutup */}
+        <p className="text-[11pt] text-justify mb-6">
+          Demikian surat tugas ini dibuat untuk dapat dipergunakan dan dilaksanakan sebagaimana mestinya.
+        </p>
+      </div>
+
+      {/* 7. Titimangsa & Tanda Tangan (Pihak Mitra & Ketua UPPM) */}
+      <div>
+        <div className="w-full text-[11pt]">
+          {/* Tanggal Surat di Atas TTD Kanan */}
+          <div className="flex justify-end mb-1">
+            <div className="w-72 text-center">
+              <p>{data.tempat_tanggal_surat || 'Surakarta, 02 Juli 2026'}</p>
+            </div>
+          </div>
+
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr>
+                {/* Kolom Kiri: Mengetahui Pihak Mitra */}
+                <td style={{ width: '50%', textAlign: 'center', verticalAlign: 'top' }}>
+                  <p className="m-0 leading-tight">Mengetahui,</p>
+                  <p className="m-0 leading-tight">Pihak Mitra,</p>
+                  
+                  <div className="h-[60px] flex items-center justify-center relative pointer-events-none">
+                    {ttdMitra ? (
+                      <img 
+                        src={ttdMitra} 
+                        alt="Tanda Tangan Pihak Mitra" 
+                        className="max-h-[85px] max-w-[170px] object-contain -my-4 -mt-5 z-20 mix-blend-multiply" 
+                      />
+                    ) : (
+                      <div className="h-[60px]" />
+                    )}
+                  </div>
+                  
+                  <p className="m-0 font-normal">
+                    _____________________
+                  </p>
+                </td>
+
+                {/* Kolom Kanan: Ketua UPPM */}
+                <td style={{ width: '50%', textAlign: 'center', verticalAlign: 'top' }}>
+                  <p className="m-0 leading-tight">Hormat saya,</p>
+                  <p className="m-0 leading-tight font-medium">Ketua UPPM</p>
+                  
+                  <div className="h-[60px] flex items-center justify-center relative pointer-events-none">
+                    {ttdKetuaUppm ? (
+                      <img 
+                        src={ttdKetuaUppm} 
+                        alt="Tanda Tangan Ketua UPPM" 
+                        className="max-h-[85px] max-w-[180px] object-contain -my-4 -mt-5 z-20 mix-blend-multiply" 
+                      />
+                    ) : (
+                      <div className="h-[60px]" />
+                    )}
+                  </div>
+                  
+                  <p className="m-0 font-bold underline leading-none">
+                    {data.nama_ketua_uppm || 'Dr. Ratna Susanti, S.S., M.Pd.'}
+                  </p>
+                  <p className="m-0 text-[10pt] leading-tight mt-1">
+                    {data.nidn_ketua_uppm || 'NIDN 0617067301'}
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 8. Catatan Kaki */}
+        <div className="mt-8 text-[9.5pt] italic text-slate-700">
+          <p className="m-0">*Catatan :</p>
+          <p className="m-0">Surat Tugas dilampirkan pada laporan pengabdian dan diserahkan kembali ke UPPM</p>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
 

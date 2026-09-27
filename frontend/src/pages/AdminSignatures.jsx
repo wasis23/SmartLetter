@@ -126,6 +126,31 @@ const SIGNATURE_CATEGORIES = [
         description: 'Tampil pada lembar kedua Formulir Monev Poin 12.'
       }
     ]
+  },
+  {
+    id: 'SURAT_TUGAS',
+    categoryTitle: 'Surat Tugas (UPPM / Dosen / Mahasiswa)',
+    categorySubtitle: 'Tanda tangan Ketua UPPM dan Pihak Mitra',
+    icon: FileCheck,
+    color: 'teal',
+    items: [
+      {
+        key: 'ttd_surtug_ketua_uppm',
+        label: 'Tanda Tangan Ketua UPPM',
+        signerTitle: 'Ketua Unit Penelitian dan Pengabdian Masyarakat (UPPM)',
+        signerNameDefault: 'Dr. Ratna Susanti, S.S., M.Pd.',
+        signerNidnDefault: 'NIDN 0617067301',
+        description: 'Tampil pada bagian tanda tangan Ketua UPPM di Surat Tugas.'
+      },
+      {
+        key: 'ttd_surtug_mitra',
+        label: 'Tanda Tangan Pihak Mitra (Opsional)',
+        signerTitle: 'Pihak Mitra',
+        signerNameDefault: 'Pihak Mitra',
+        signerNidnDefault: '',
+        description: 'Tampil pada bagian tanda tangan Mengetahui Pihak Mitra (jika diunggah).'
+      }
+    ]
   }
 ];
 
